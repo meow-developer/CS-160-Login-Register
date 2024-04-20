@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 import PasswordService from "./password.js";
-import AccountStorage from "../repo/accountStorage.js";
+import AccountStorage from "../repo/accountDb.js";
 
 export default class UserRegisterService{
     private firstName: string;

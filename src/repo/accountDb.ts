@@ -1,21 +1,21 @@
-import DbConn from './dbConn.js';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
+import Db from './db.js';
 
-
-export default class AccountStorage{
-    private static instance: AccountStorage;
+export default class AccountDb{
+    private static instance: AccountDb;
+    private db = Db;
 
     private constructor(){}
 
-    public static getInstance(): AccountStorage{
-        if (!AccountStorage.instance){
-            AccountStorage.instance = new AccountStorage();
+    public static getInstance(): AccountDb{
+        if (!AccountDb.instance){
+            AccountDb.instance = new AccountDb();
         }
-        return AccountStorage.instance;
+        return AccountDb.instance;
     }
 
     public async countUserByEmail(email: string){
-        return await DbConn.users.count({
+        return await this.db.users.count({
             where: {
                 Email: email
             }
@@ -23,7 +23,7 @@ export default class AccountStorage{
     }
 
     public async getUserStatus(email: string){
-        return await DbConn.users.findUnique({
+        return await this.db.users.findUnique({
             where: {
                 Email: email
             },
@@ -34,7 +34,7 @@ export default class AccountStorage{
     }
 
     public async getHashedPassword(email: string){
-        return await DbConn.users.findUnique({
+        return await this.db.users.findUnique({
             where: {
                 Email: email
             },
@@ -45,16 +45,26 @@ export default class AccountStorage{
     }
     
     public async createUser(userData: Prisma.UsersCreateInput){
-        await DbConn.users.create({
+        await this.db.users.create({
             data: userData
         })
     }
     public async updateUser(userId: number,userData: Prisma.UsersUpdateInput){
-        await DbConn.users.update({
+        await this.db.users.update({
             where: {
                 UserID: userId
             },
             data: userData
+        })
+    }
+    public async getUserIdByEmail(email: string){
+        return await this.db.users.findUnique({
+            where: {
+                Email: email
+            },
+            select: {
+                UserID: true
+            }
         })
     }
 }

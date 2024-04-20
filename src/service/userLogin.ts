@@ -1,5 +1,6 @@
-import AccountStorage from "../repo/accountStorage.js";
+import AccountDb from "../repo/accountDb.js";
 import PasswordService from "./password.js";
+import JwTAuthService from "./jwtAuth.js";
 
 class UserLoginError extends Error{
     public constructor(message: string){
@@ -12,8 +13,9 @@ export default class UserLoginService{
     private plainPassword: string;
     private hashPassword: string | null = null;
 
-    private accountStorage: AccountStorage = AccountStorage.getInstance();
+    private accountDb: AccountDb = AccountDb.getInstance();
     private passwordStorage: PasswordService = PasswordService.getInstance();
+    private jwtAuthService: JwTAuthService = JwTAuthService.getInstance();
 
     public constructor(email: string, plainPassword: string){
         this.email = email;
@@ -21,7 +23,7 @@ export default class UserLoginService{
     }
 
     private async checkUserExist(): Promise<void>{
-        const userCount = await this.accountStorage.countUserByEmail(this.email);
+        const userCount = await this.accountDb.countUserByEmail(this.email);
         
         if (userCount === 0){
             throw new UserLoginError("User not found");
@@ -29,7 +31,7 @@ export default class UserLoginService{
     }
 
     private async checkUserActive(): Promise<void>{
-        const isActive = (await this.accountStorage.getUserStatus(this.email))?.Active;
+        const isActive = (await this.accountDb.getUserStatus(this.email))?.Active;
         
         if (!isActive){
             throw new UserLoginError("User is not active");
@@ -37,7 +39,7 @@ export default class UserLoginService{
     }
 
     private async loadHashedPassword(): Promise<void>{
-        this.hashPassword = (await this.accountStorage.getHashedPassword(this.email))?.HashedPassword!;
+        this.hashPassword = (await this.accountDb.getHashedPassword(this.email))?.HashedPassword!;
     }
 
     private async checkPasswordMatch(): Promise<void>{
@@ -46,6 +48,15 @@ export default class UserLoginService{
         if (!isPasswordMatch){
             throw new UserLoginError("Password does not match");
         }
+    }
+
+    private async getUserId(){
+        const userId = await this.accountDb.getUserIdByEmail(this.email);
+        return userId?.UserID;
+    }
+
+    private async generateToken(userId: string): Promise<string>{
+        return this.jwtAuthService.signToken(userId);
     }
 
     public async loginUser(){
