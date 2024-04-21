@@ -1,4 +1,5 @@
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import 'dotenv/config'
 
 class JwtSecretKeyStorageError extends Error {
     constructor(message: string) {
@@ -7,11 +8,10 @@ class JwtSecretKeyStorageError extends Error {
 }
 
 export default class JwtSecretKeyStorage {
-    private secretId: string;
+    private secretId = this.getSecretIdFromEnv();
     public static instance: JwtSecretKeyStorage;
 
     private constructor() {
-        this.secretId = this.getSecretIdFromEnv();
     }
 
     public static getInstance(){
@@ -33,7 +33,7 @@ export default class JwtSecretKeyStorage {
         return secretId;
     }
 
-    private async getSecretFromSecretsManager(){
+    private async getSecretKeyFromSecretsManager(){
         const client = new SecretsManagerClient();
         const command = new GetSecretValueCommand({
             SecretId: this.secretId
@@ -49,7 +49,7 @@ export default class JwtSecretKeyStorage {
     }
     
     public async getSecretKey(){
-        const secret = await this.getSecretFromSecretsManager();
+        const secret = await this.getSecretKeyFromSecretsManager();
         return secret;
     }
 }

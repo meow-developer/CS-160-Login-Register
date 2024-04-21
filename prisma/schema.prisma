@@ -9,16 +9,17 @@ datasource db {
 
 model Articles {
   ArticleID          Int           @id @default(autoincrement())
-  Title              String?       @db.VarChar(255)
-  StorageArticleName String?       @db.VarChar(255)
+  Title              String        @db.VarChar(255)
+  StorageArticleUUID String        @unique(map: "StorageArticleUUID") @db.VarChar(255)
   Active             Boolean       @default(true)
+  PdfFileSummary     String        @db.Text
   Diagram            Diagram?
   UserArticle        UserArticle[]
 }
 
 model Diagram {
   ArticleID          Int      @unique(map: "ArticleID")
-  StorageDiagramName String?  @db.VarChar(255)
+  StorageDiagramUUID String   @unique(map: "StorageDiagramName") @db.VarChar(255)
   Active             Boolean  @default(true)
   Articles           Articles @relation(fields: [ArticleID], references: [ArticleID], onDelete: Cascade, onUpdate: NoAction, map: "Diagram_ibfk_1")
 }

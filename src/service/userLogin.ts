@@ -43,7 +43,7 @@ export default class UserLoginService{
     }
 
     private async checkPasswordMatch(): Promise<void>{
-        const isPasswordMatch = await this.passwordStorage.checkPassword(this.plainPassword, this.hashPassword!);
+        const isPasswordMatch = await this.passwordStorage.verifyPasswordWithHash(this.plainPassword, this.hashPassword!);
 
         if (!isPasswordMatch){
             throw new UserLoginError("Password does not match");

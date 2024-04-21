@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-
+import CheckPasswordPwned from "./checkPasswordPwned.js";
 
 export default class PasswordService{
     private static instance: PasswordService;
@@ -22,9 +22,19 @@ export default class PasswordService{
             hashPassword, salt
         ]
     }
-    public async checkPassword(plainPassword: string, hashPassword: string): Promise<boolean> {
+    
+    public async verifyPasswordWithHash(plainPassword: string, hashPassword: string): Promise<boolean> {
         const match = bcrypt.compareSync(plainPassword, hashPassword);
         return match;
     }
 
+    private async checkIsPasswordPwned(password: string): Promise<boolean> {
+        const checkPasswordPwned = new CheckPasswordPwned();
+        return await checkPasswordPwned.verifyPasswordSafety(password);
+    }
+
+    public async checkPasswordStrength(password: string): Promise<boolean> {
+        const isPasswordSafe = !(await this.checkIsPasswordPwned(password));
+        return isPasswordSafe;
+    }
 }
