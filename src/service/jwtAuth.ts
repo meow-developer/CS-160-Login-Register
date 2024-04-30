@@ -27,7 +27,7 @@ export default class JwTAuthService{
          * @see {@link} https://www.npmjs.com/package/jsonwebtoken#:~:text=with%20an%20error.-,options,-%3A
          */
         const JWT_CONFIG_ENV_KEY = 'JWT_CONFIG';
-        console.log(process.env[JWT_CONFIG_ENV_KEY])
+
         let jwtConfig = JSON.parse(process.env[JWT_CONFIG_ENV_KEY]!);       
 
         return jwtConfig;
