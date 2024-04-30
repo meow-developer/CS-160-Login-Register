@@ -1,7 +1,8 @@
-import { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 import PasswordService from "./password.js";
-import AccountStorage from "../repo/accountDb.js";
+import AccountDb from "../repo/accountDb.js";
+import JwTAuthService from "./jwtAuth.js";
 import { ServiceRestError } from './ServiceRestError.js';
 
 type UserRegisterData = {
@@ -10,13 +11,26 @@ type UserRegisterData = {
     plainPassword: string;
 }
 
+class UserRegisterError extends Error {
+    public constructor(message: string){
+        super(message);
+    }
+}
+
 export default class UserRegisterService{
     private userRegisterData: UserRegisterData;
-    private hashPassword: string | null = null;
-    private salt: string | null = null;
 
     public constructor(userRegisterData: UserRegisterData){
         this.userRegisterData = userRegisterData;
+    }
+
+    private async checkUserExistAndThrow(){
+        const accountDb = AccountDb.getInstance();
+        const userCount = await accountDb.countUserByEmail(this.userRegisterData.email);
+        
+        if (userCount > 0){
+            throw new UserRegisterError("User with this email already exist");
+        }
     }
 
     private async checkPasswordStrengthAndThrow(){
@@ -24,33 +38,55 @@ export default class UserRegisterService{
         const isPasswordSafe = await passwordService.checkPasswordStrength(this.userRegisterData.plainPassword);
 
         if (!isPasswordSafe){
-            throw new ServiceRestError("Password is too weak", 400, "Password is too weak");
+            throw new UserRegisterError("Password is too weak");
         }
     }
 
-    private async generateHashPassword(): Promise<void>{
+    private async generateHashPassword(): Promise<string>{
         const passwordService = PasswordService.getInstance();
         const [hashPassword, salt] = await passwordService.hashPassword(this.userRegisterData.plainPassword);
 
-        this.hashPassword = hashPassword;
-        this.salt = salt;
+        return hashPassword;
     }
 
-    private async addUserToDb(){
-        const accountStorage = AccountStorage.getInstance();
-        await accountStorage.createUser({
+    private async generateUserUUID() {
+        return crypto.randomUUID();
+    }
+
+    private async addUserToDb(userUUID: string, hashedPwWithSalt: string){
+        const accountDb = AccountDb.getInstance();
+        await accountDb.createUser({
+            "UserUUID": userUUID,
             "Email": this.userRegisterData.email,
-            "FirstName": this.userRegisterData.displayName,
-            "HashedPassword": this.hashPassword as string,
-            "Salt": this.salt as string,
-            "LastName" : ""
+            "DisplayName": this.userRegisterData.displayName,
+            "HashedPasswordWithSalt": hashedPwWithSalt,
+            "Active": true
         });
-
     }
 
-    public async registerUser(){
-        await this.checkPasswordStrengthAndThrow();
-        await this.generateHashPassword();
-        await this.addUserToDb();
+    private async generateToken(userId: string): Promise<string>{
+        const jwtAuthService = JwTAuthService.getInstance();
+        return jwtAuthService.signToken(userId);
+    }
+
+    public async register(){
+        try{
+            await this.checkUserExistAndThrow();
+            await this.checkPasswordStrengthAndThrow();
+
+            const hashedPwWithSalt = await this.generateHashPassword();
+            const userUUID = await this.generateUserUUID();
+
+            await this.addUserToDb(userUUID, hashedPwWithSalt);
+
+            const token = await this.generateToken(userUUID);
+            return token;
+        } catch (err) {
+            if (err instanceof UserRegisterError){
+                throw new ServiceRestError(`User registration failed: \n${err.message}`, 400, err.message);
+            } else {
+                throw new ServiceRestError(`Error occurred during user registration`);
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 import AccountDb from "../repo/accountDb.js";
 import PasswordService from "./password.js";
 import JwTAuthService from "./jwtAuth.js";
+import { ServiceRestError } from './ServiceRestError.js';
 
 class UserLoginError extends Error{
     public constructor(message: string){
@@ -9,21 +10,18 @@ class UserLoginError extends Error{
 }
 
 export default class UserLoginService{
-    private email: string;
-    private plainPassword: string;
-    private hashPassword: string | null = null;
+    private loginCredentials: {email: string, password: string};
 
     private accountDb: AccountDb = AccountDb.getInstance();
-    private passwordStorage: PasswordService = PasswordService.getInstance();
+    private passwordService: PasswordService = PasswordService.getInstance();
     private jwtAuthService: JwTAuthService = JwTAuthService.getInstance();
 
-    public constructor(email: string, plainPassword: string){
-        this.email = email;
-        this.plainPassword = plainPassword;
+    public constructor(loginCredentials: {email: string, password: string}){
+        this.loginCredentials = loginCredentials;
     }
 
     private async checkUserExist(): Promise<void>{
-        const userCount = await this.accountDb.countUserByEmail(this.email);
+        const userCount = await this.accountDb.countUserByEmail(this.loginCredentials.email);
         
         if (userCount === 0){
             throw new UserLoginError("User not found");
@@ -31,42 +29,52 @@ export default class UserLoginService{
     }
 
     private async checkUserActive(): Promise<void>{
-        const isActive = (await this.accountDb.getUserStatus(this.email))?.Active;
+        const isActive = (await this.accountDb.getUserStatus(this.loginCredentials.email))?.Active;
         
         if (!isActive){
-            throw new UserLoginError("User is not active");
+            throw new UserLoginError("User is deactivated");
         }
     }
 
-    private async loadHashedPassword(): Promise<void>{
-        this.hashPassword = (await this.accountDb.getHashedPassword(this.email))?.HashedPassword!;
+    private async getHashedPassword(): Promise<string>{
+        return (await this.accountDb.getHashedPassword(this.loginCredentials.email))?.HashedPasswordWithSalt!;
     }
 
-    private async checkPasswordMatch(): Promise<void>{
-        const isPasswordMatch = await this.passwordStorage.verifyPasswordWithHash(this.plainPassword, this.hashPassword!);
+    private async checkPasswordMatch(hashedPassword: string): Promise<void> {
+        const isPasswordMatch = await this.passwordService.verifyPasswordWithHash(this.loginCredentials.password, hashedPassword);
 
         if (!isPasswordMatch){
             throw new UserLoginError("Password does not match");
         }
     }
 
-    private async getUserId(){
-        const userId = await this.accountDb.getUserIdByEmail(this.email);
-        return userId?.UserID;
+    private async getUserUUID(): Promise<string>{
+        const userId = await this.accountDb.getUserIdByEmail(this.loginCredentials.email);
+        return userId?.UserUUID!;
     }
 
     private async generateToken(userId: string): Promise<string>{
         return this.jwtAuthService.signToken(userId);
     }
 
-    public async loginUser(){
+    public async login(){
         try {
             await this.checkUserExist();
             await this.checkUserActive();
-            await this.loadHashedPassword();
-            await this.checkPasswordMatch();
+
+            const hashedPassword = await this.getHashedPassword();
+            await this.checkPasswordMatch(hashedPassword);
+
+            const userUUID = await this.getUserUUID();
+            const token = await this.generateToken(userUUID);
+
+            return token;
         } catch (error){
-        
+            if (error instanceof UserLoginError){
+                throw new ServiceRestError(`User sign in error:\n ${error.message}`, 400, error.message);
+            } else {
+                throw new ServiceRestError("Error occurred while processing login request");
+            }
         }
     }
 }

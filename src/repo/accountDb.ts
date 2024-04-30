@@ -39,7 +39,7 @@ export default class AccountDb{
                 Email: email
             },
             select: {
-                HashedPassword: true
+                HashedPasswordWithSalt: true
             }
         })
     }
@@ -49,10 +49,10 @@ export default class AccountDb{
             data: userData
         })
     }
-    public async updateUser(userId: number,userData: Prisma.UsersUpdateInput){
+    public async updateUser(userUUID: string, userData: Prisma.UsersUpdateInput){
         await this.db.users.update({
             where: {
-                UserID: userId
+                UserUUID: userUUID
             },
             data: userData
         })
@@ -63,7 +63,7 @@ export default class AccountDb{
                 Email: email
             },
             select: {
-                UserID: true
+                UserUUID: true
             }
         })
     }
