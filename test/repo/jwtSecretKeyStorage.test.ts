@@ -1,4 +1,4 @@
-import JwtSecretKeyStorage from "../../src/repo/jwtSecretKeyStorage";
+import JwtSecretKeyStorage from "../../src/repo/jwtSecretKeyStorage.js";
 
 describe("JwtSecretKeyStorage", () => {
     describe("getSecretKey", () => {

@@ -1,4 +1,4 @@
-import JwTAuthService from '../../src/service/jwtAuth'
+import JwTAuthService from '../../src/service/jwtAuth.js'
 
 describe("JwtAuthService", () => {
     let jwTAuthService: JwTAuthService;

@@ -8,7 +8,6 @@ class CaptchaError extends Error {
 
 
 export default class CaptchaService{
-    private GOOGLE_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
     private secretKey: string;
 
     constructor(){
@@ -19,8 +18,9 @@ export default class CaptchaService{
         clientResponse: string,
         remoteIp: string
     ){
+        const GOOGLE_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
         try {
-            const response = await axios.post(this.GOOGLE_VERIFY_URL, {
+            const response = await axios.post(GOOGLE_VERIFY_URL, {
                 secret: this.secretKey,
                 response: clientResponse,
                 remoteip: remoteIp
@@ -32,7 +32,7 @@ export default class CaptchaService{
         }
     }
 
-    private getVerifyResult(resData: any){
+    private getVerifyResult(resData: any): Promise<boolean>{
         const success = resData.success;
         
         if (!success){
@@ -56,7 +56,7 @@ export default class CaptchaService{
     public async verifyCaptcha(
         clientResponse: string,
         remoteIp: string
-    ){
+    ): Promise<boolean>{
         const resData = await this.sendVerifyRequest(clientResponse, remoteIp);
         const result = this.getVerifyResult(resData);
 

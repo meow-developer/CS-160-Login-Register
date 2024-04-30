@@ -1,4 +1,4 @@
-import { validateLogin, validateRegister} from "../../../src/middleware/validator/httpInputValidator.js";
+import { validateLogin, validateRegister} from "../../../middleware/validator/httpInputValidator.js";
 describe("validateLogin", () => {
     it("should return an error if email is missing", () => {
         const input = {
