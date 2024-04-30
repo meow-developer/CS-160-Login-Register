@@ -10,10 +10,6 @@ class CheckPasswordPwnedError extends Error {
 export default class CheckPasswordPwned {
     private PASSWORD_THRESHOLD = 10;
 
-    constructor() {
-
-    }
-
     private getPasswordHashPrefixSuffix(password: string): Array<string> {
         const hash = createHash('sha1').update(password, 'utf8').digest('hex').toUpperCase();
         const prefix = hash.substring(0, 5);
