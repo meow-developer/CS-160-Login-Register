@@ -1,4 +1,4 @@
-import CheckPasswordPwned from '../../service/checkPasswordPwned.js';
+import CheckPasswordPwned from '../../src/service/checkPasswordPwned.js';
 
 describe('CheckPasswordPwned', () => {
   let checkPasswordPwned: CheckPasswordPwned;

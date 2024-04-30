@@ -5,7 +5,7 @@ import AccountDb from "../repo/accountDb.js";
 import JwTAuthService from "./jwtAuth.js";
 import { ServiceRestError } from './ServiceRestError.js';
 
-type UserRegisterData = {
+export type UserRegisterData = {
     displayName: string,
     email: string;
     plainPassword: string;
