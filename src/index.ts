@@ -9,7 +9,8 @@ const PORT = 8080;
 
 app.use(morgan('combined'))
 
-const VISUAL_API_ENDPOINT = 'auth';
+const AUTH_API_ENDPOINT = 'auth';
+
 const CORS_OPTIONS = {
   origin: "*",
   methods: "GET,POST,PUT,DELETE"
@@ -18,7 +19,7 @@ const CORS_OPTIONS = {
 app.use(cors(CORS_OPTIONS));
 
 
-app.use(`/${VISUAL_API_ENDPOINT}`, router);
+app.use(`/${AUTH_API_ENDPOINT}`, router);
 
 app.use(errorHandlingMiddleware);
 
