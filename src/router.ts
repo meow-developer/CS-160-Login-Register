@@ -11,7 +11,9 @@ router.use(captchaVerify);
 
 router.get('/login', validateLogin, controller.login);
 
-router.put('/register', validateRegister);
+router.post('/register', validateRegister);
+
+router.put('/update');
 
 router.use(handleExpressValidation);
 

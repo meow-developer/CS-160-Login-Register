@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 
-import PasswordService from "./password.js";
+import HashPasswordService from "./hashPassword.js";
 import AccountDb from "../repo/accountDb.js";
 import JwTAuthService from "./jwtAuth.js";
+import PasswordStrengthChecker from './passwordStrength.js';
 import { ServiceRestError } from './ServiceRestError.js';
 
 export type UserRegisterData = {
@@ -32,19 +33,18 @@ export default class UserRegisterService{
             throw new UserRegisterError("User with this email already exist");
         }
     }
-
     private async checkPasswordStrengthAndThrow(){
-        const passwordService = PasswordService.getInstance();
-        const isPasswordSafe = await passwordService.checkPasswordStrength(this.userRegisterData.plainPassword);
+        const passwordStrengthChecker = new PasswordStrengthChecker(this.userRegisterData.plainPassword);
+        const isPasswordStrong = await passwordStrengthChecker.getPasswordStrength();
 
-        if (!isPasswordSafe){
-            throw new UserRegisterError("Password is too weak");
+        if (!isPasswordStrong){
+            throw new UserRegisterError("Password is not strong enough");
         }
     }
 
     private async generateHashPassword(): Promise<string>{
-        const passwordService = PasswordService.getInstance();
-        const [hashPassword, salt] = await passwordService.hashPassword(this.userRegisterData.plainPassword);
+        const hashPasswordService = HashPasswordService.getInstance();
+        const [hashPassword, salt] = await hashPasswordService.hashPassword(this.userRegisterData.plainPassword);
 
         return hashPassword;
     }
@@ -73,7 +73,6 @@ export default class UserRegisterService{
         try{
             await this.checkUserExistAndThrow();
             await this.checkPasswordStrengthAndThrow();
-
             const hashedPwWithSalt = await this.generateHashPassword();
             const userUUID = await this.generateUserUUID();
 
