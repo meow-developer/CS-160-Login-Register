@@ -20,7 +20,7 @@ export default class CookieJWTService {
         val: string, 
         options: CookieOptions]{
         
-        const COOKIE_TOKEN_KEY = "token";
+        const COOKIE_TOKEN_KEY = "KEY_LINK_TOKEN";
 
         return [COOKIE_TOKEN_KEY, this.jwt, {
             domain: process.env.API_DOMAIN,
@@ -28,7 +28,8 @@ export default class CookieJWTService {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "none",
-            expires: new Date(Date.now() + this.getExpireDayFromEnv() * 24 * 60 * 60 * 1000)
+            expires: new Date(Date.now() + this.getExpireDayFromEnv() * 24 * 60 * 60 * 1000),
+            priority: "high"
         }]
     }
 }
