@@ -1,59 +1,41 @@
 import crypto from 'crypto';
-
 import HashPasswordService from "./hashPassword.js";
 import AccountDb from "../repo/accountDb.js";
 import JwTAuthService from "./jwtAuth.js";
 import PasswordStrengthChecker from './passwordStrength.js';
 import { ServiceRestError } from './ServiceRestError.js';
-
-export type UserRegisterData = {
-    displayName: string,
-    email: string;
-    plainPassword: string;
-}
-
 class UserRegisterError extends Error {
-    public constructor(message: string){
+    constructor(message) {
         super(message);
     }
 }
-
-export default class UserRegisterService{
-    private userRegisterData: UserRegisterData;
-
-    public constructor(userRegisterData: UserRegisterData){
+export default class UserRegisterService {
+    constructor(userRegisterData) {
         this.userRegisterData = userRegisterData;
     }
-
-    private async checkUserExistAndThrow(){
+    async checkUserExistAndThrow() {
         const accountDb = AccountDb.getInstance();
         const userCount = await accountDb.countUserByEmail(this.userRegisterData.email);
-        
-        if (userCount > 0){
+        if (userCount > 0) {
             throw new UserRegisterError("User with this email already exist");
         }
     }
-    private async checkPasswordStrengthAndThrow(){
+    async checkPasswordStrengthAndThrow() {
         const passwordStrengthChecker = new PasswordStrengthChecker(this.userRegisterData.plainPassword);
         const isPasswordStrong = await passwordStrengthChecker.getPasswordStrength();
-
-        if (!isPasswordStrong){
+        if (!isPasswordStrong) {
             throw new UserRegisterError("Password is not strong enough");
         }
     }
-
-    private async generateHashPassword(): Promise<string>{
+    async generateHashPassword() {
         const hashPasswordService = HashPasswordService.getInstance();
         const [hashPassword, salt] = await hashPasswordService.hashPassword(this.userRegisterData.plainPassword);
-
         return hashPassword;
     }
-
-    private async generateUserUUID() {
+    async generateUserUUID() {
         return crypto.randomUUID();
     }
-
-    private async addUserToDb(userUUID: string, hashedPwWithSalt: string){
+    async addUserToDb(userUUID, hashedPwWithSalt) {
         const accountDb = AccountDb.getInstance();
         await accountDb.createUser({
             "UserUUID": userUUID,
@@ -63,28 +45,26 @@ export default class UserRegisterService{
             "Active": true
         });
     }
-
-    private async generateToken(userId: string): Promise<string>{
+    async generateToken(userId) {
         const jwtAuthService = JwTAuthService.getInstance();
         return jwtAuthService.signToken(userId);
     }
-
-    public async register(){
-        try{
+    async register() {
+        try {
             await this.checkUserExistAndThrow();
             await this.checkPasswordStrengthAndThrow();
             const hashedPwWithSalt = await this.generateHashPassword();
             const userUUID = await this.generateUserUUID();
-
             await this.addUserToDb(userUUID, hashedPwWithSalt);
-
             const token = await this.generateToken(userUUID);
             return token;
-        } catch (err) {
-            console.log(err)
-            if (err instanceof UserRegisterError){
+        }
+        catch (err) {
+            console.log(err);
+            if (err instanceof UserRegisterError) {
                 throw new ServiceRestError(`User registration failed: \n${err.message}`, 400, err.message);
-            } else {
+            }
+            else {
                 throw new ServiceRestError(`Error occurred during user registration`);
             }
         }
