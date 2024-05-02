@@ -1,5 +1,5 @@
 import AccountDb from "../repo/accountDb.js";
-import PasswordService from "./password.js";
+import HashPasswordService from "./hashPassword.js";
 import JwTAuthService from "./jwtAuth.js";
 import { ServiceRestError } from './ServiceRestError.js';
 
@@ -13,7 +13,7 @@ export default class UserLoginService{
     private loginCredentials: {email: string, password: string};
 
     private accountDb: AccountDb = AccountDb.getInstance();
-    private passwordService: PasswordService = PasswordService.getInstance();
+    private HashpasswordService: HashPasswordService = HashPasswordService.getInstance();
     private jwtAuthService: JwTAuthService = JwTAuthService.getInstance();
 
     public constructor(loginCredentials: {email: string, password: string}){
@@ -41,7 +41,7 @@ export default class UserLoginService{
     }
 
     private async checkPasswordMatch(hashedPassword: string): Promise<void> {
-        const isPasswordMatch = await this.passwordService.verifyPasswordWithHash(this.loginCredentials.password, hashedPassword);
+        const isPasswordMatch = await this.HashpasswordService.verifyPasswordWithHash(this.loginCredentials.password, hashedPassword);
 
         if (!isPasswordMatch){
             throw new UserLoginError("Password does not match");
