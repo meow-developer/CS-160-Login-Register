@@ -23,7 +23,7 @@ export default class CookieJWTService {
         const COOKIE_TOKEN_KEY = "token";
 
         return [COOKIE_TOKEN_KEY, this.jwt, {
-            domain: process.env.WEB_DOMAIN,
+            domain: process.env.API_DOMAIN,
             path: "/",
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
