@@ -3,7 +3,7 @@ import cors from 'cors';
 import router from './router.js';
 import morgan from 'morgan';
 import { errorHandlingMiddleware } from './middleware/restErrorHandler.js';
-import HostnameData from './data/hostname.json';
+import HostnameData from './data/hostname.json' assert { type: 'json' };
 
 const app = express();
 const PORT = 8080;
