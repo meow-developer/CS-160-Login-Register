@@ -3,6 +3,7 @@ import cors from 'cors';
 import router from './router.js';
 import morgan from 'morgan';
 import { errorHandlingMiddleware } from './middleware/restErrorHandler.js';
+import HostnameData from './data/hostname.json';
 
 const app = express();
 const PORT = 8080;
@@ -14,10 +15,7 @@ app.use(morgan('combined'))
 const AUTH_API_ENDPOINT = 'auth';
 
 const CORS_OPTIONS = {
-  origin: [ "http://localhost:5500",
-            "http://localhost:8080",
-            "https://cs160-internal.pages.dev/", 
-            "https://cs-160.pages.dev/" ],
+  origin: HostnameData.frontend_cors_origin,
   methods: "GET,POST,PUT,DELETE",
   credentials: true,
   optionsSuccessStatus: 200
