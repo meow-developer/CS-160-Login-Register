@@ -9,11 +9,9 @@ const router = Router();
 
 router.use(captchaVerify);
 
-router.get('/login', validateLogin, controller.login);
+router.post('/login', validateLogin, controller.login);
 
 router.post('/register', validateRegister, controller.register);
-
-router.put('/update');
 
 router.use(handleExpressValidation);
 
