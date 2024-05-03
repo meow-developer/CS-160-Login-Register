@@ -14,8 +14,13 @@ app.use(morgan('combined'))
 const AUTH_API_ENDPOINT = 'auth';
 
 const CORS_OPTIONS = {
-  origin: "*",
-  methods: "GET,POST,PUT,DELETE"
+  origin: [ "http://localhost:5500",
+            "http://localhost:8080",
+            "https://cs160-internal.pages.dev/", 
+            "https://cs-160.pages.dev/" ],
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(CORS_OPTIONS));
