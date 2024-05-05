@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import UserLoginService from '../service/userLogin.js';
 import UserRegisterService from '../service/userRegister.js';
 import RestResponseMaker from './tools/responseMaker.js';
-import CookieJWTService from '../service/cookieJwt.js';
+import CookieService from '../service/cookieJwt.js';
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     const email = req.body.email;
@@ -11,13 +11,18 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     try {
         const userLoginService = new UserLoginService({email: email, password: password});
 
-        const token = await userLoginService.login();
+        const [userId, token] = await userLoginService.login();
 
-        const cookieJWTService = new CookieJWTService(token);
-        const cookieData = cookieJWTService.getCookieHttpConfig();
+        const cookieJWTService = new CookieService(token, userId);
 
-        res.cookie(...cookieData);
-        res.status(200).send(RestResponseMaker.makeSuccessResponse('Login successful'));
+        const jwtCookieData = cookieJWTService.getJwtCookieHttpConfig();
+        const userIdCookieData = cookieJWTService.getUserIdCookieHttpConfig();
+
+        res.cookie(...jwtCookieData);
+        res.cookie(...userIdCookieData);
+        res.status(200).send(RestResponseMaker.makeSuccessResponse({
+            "userId": userId
+        }));
     } catch (err) {
         next(err);
     }
@@ -31,13 +36,17 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     try {
         const userRegisterService = new UserRegisterService({email: email, displayName: displayName, plainPassword: password});
 
-        const token = await userRegisterService.register();
+        const [userId, token] = await userRegisterService.register();
         
-        const cookieJWTService = new CookieJWTService(token);
-        const cookieData = cookieJWTService.getCookieHttpConfig();
+        const cookieJWTService = new CookieService(token, userId);
+        const jwtCookieData = cookieJWTService.getJwtCookieHttpConfig();
+        const userIdCookieData = cookieJWTService.getUserIdCookieHttpConfig();
 
-        res.cookie(...cookieData);
-        res.status(200).send(RestResponseMaker.makeSuccessResponse('Registration successful'));
+        res.cookie(...jwtCookieData);
+        res.cookie(...userIdCookieData);
+        res.status(200).send(RestResponseMaker.makeSuccessResponse({
+            "userId": userId
+        }));
     } catch (err) {
         next(err);
     }
