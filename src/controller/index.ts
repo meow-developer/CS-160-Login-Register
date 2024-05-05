@@ -21,7 +21,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         res.cookie(...jwtCookieData);
         res.cookie(...userIdCookieData);
         res.status(200).send(RestResponseMaker.makeSuccessResponse({
-            "userId": userId
+            "userId": userId,
+            "token": token
         }));
     } catch (err) {
         next(err);
@@ -45,7 +46,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         res.cookie(...jwtCookieData);
         res.cookie(...userIdCookieData);
         res.status(200).send(RestResponseMaker.makeSuccessResponse({
-            "userId": userId
+            "userId": userId,
+            "token": token
         }));
     } catch (err) {
         next(err);
