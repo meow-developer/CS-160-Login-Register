@@ -79,7 +79,10 @@ export default class UserRegisterService{
             await this.addUserToDb(userUUID, hashedPwWithSalt);
 
             const token = await this.generateToken(userUUID);
-            return token;
+            return [
+                userUUID, token
+            
+            ];
         } catch (err) {
             console.log(err)
             if (err instanceof UserRegisterError){

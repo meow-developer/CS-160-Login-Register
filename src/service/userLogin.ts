@@ -68,7 +68,9 @@ export default class UserLoginService{
             const userUUID = await this.getUserUUID();
             const token = await this.generateToken(userUUID);
 
-            return token;
+            return [
+                userUUID, token
+            ];
         } catch (error){
             if (error instanceof UserLoginError){
                 throw new ServiceRestError(`User sign in error:\n ${error.message}`, 400, error.message);
