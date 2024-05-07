@@ -67,4 +67,15 @@ export default class AccountDb{
             }
         })
     }
+    public async getUserPersonalByEmail(email: string){
+        return await this.db.users.findUnique({
+            where: {
+                Email: email
+            },
+            select: {
+                Email: true,
+                DisplayName: true
+            }
+        })
+    }
 }
