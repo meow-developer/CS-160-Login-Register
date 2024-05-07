@@ -36,6 +36,14 @@ export default class UserLoginService{
         }
     }
 
+    private async getUserFromDB(): Promise<{displayName: string, email: string}>{
+        const user = await this.accountDb.getUserPersonalByEmail(this.loginCredentials.email);
+        return {
+            displayName: user?.DisplayName!,
+            email: user?.Email!
+        }
+    }
+
     private async getHashedPassword(): Promise<string>{
         return (await this.accountDb.getHashedPassword(this.loginCredentials.email))?.HashedPasswordWithSalt!;
     }
@@ -65,12 +73,16 @@ export default class UserLoginService{
             const hashedPassword = await this.getHashedPassword();
             await this.checkPasswordMatch(hashedPassword);
 
+            const user = await this.getUserFromDB();
             const userUUID = await this.getUserUUID();
             const token = await this.generateToken(userUUID);
 
-            return [
-                userUUID, token
-            ];
+            return {
+                userId: userUUID,
+                token: token,
+                displayName: user.displayName,
+                email: user.email
+            }
         } catch (error){
             if (error instanceof UserLoginError){
                 throw new ServiceRestError(`User sign in error:\n ${error.message}`, 400, error.message);

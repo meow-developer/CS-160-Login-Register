@@ -9,11 +9,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     try {
         const userLoginService = new UserLoginService({email: email, password: password});
 
-        const [userId, token] = await userLoginService.login();
+        const userLoginData = await userLoginService.login();
 
         res.status(200).send(RestResponseMaker.makeSuccessResponse({
-            "userId": userId,
-            "token": token
+            "userId": userLoginData.userId,
+            "token": userLoginData.token,
+            "displayName": userLoginData.displayName,
+            "email": userLoginData.email
         }));
     } catch (err) {
         next(err);
@@ -28,11 +30,13 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     try {
         const userRegisterService = new UserRegisterService({email: email, displayName: displayName, plainPassword: password});
 
-        const [userId, token] = await userRegisterService.register();
+        const userRegisterData = await userRegisterService.register();
         
         res.status(200).send(RestResponseMaker.makeSuccessResponse({
-            "userId": userId,
-            "token": token
+            "userId": userRegisterData.userId,
+            "token": userRegisterData.token,
+            "displayName": userRegisterData.displayName,
+            "email": userRegisterData.email
         }));
     } catch (err) {
         next(err);
